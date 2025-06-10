@@ -1,6 +1,6 @@
 """Orchestrator Service API implementation."""
 
-from typing import Dict
+from typing import Dict, List
 from httpx import Response
 
 import uuid
@@ -11,6 +11,7 @@ from airline_saga.common.models import (
     BookingStatus, BookingStep, TransactionResult
 )
 from airline_saga.common.config import OrchestratorSettings
+from airline_saga.orchestrator.models import PaymentDetails
 from airline_saga.common.exceptions import (
     OrchestratorException,
     BookingNotFoundException
@@ -19,12 +20,12 @@ from airline_saga.orchestrator.models import (
     StartBookingRequest, StartBookingResponse, BookingDetails, CancellationResponse
 )
 from airline_saga.orchestrator.exception_handlers import register_exception_handlers
-from airline_saga.common.logger import setup_request_logging, config_logger
-
-SERVICE_NAME = "Orchestrator Service"
+from airline_saga.orchestrator.services.commands import OrchestratorCommand, OrchestratorCommandArgs
+from airline_saga.orchestrator.services.commands.command_factory import OrchestratorCommandFactory
+from airline_saga.common.logger import setup_request_logging
+from airline_saga.orchestrator import logger, SERVICE_NAME
 
 app: FastAPI = FastAPI(title=SERVICE_NAME, description="Service for orchestrating the booking saga")
-logger = config_logger(service_name=SERVICE_NAME)
 
 setup_request_logging(app, logger)
 
@@ -81,7 +82,7 @@ async def start_booking(request: StartBookingRequest, background_tasks: Backgrou
         passenger_name=request.passenger_name,
         flight_number=request.flight_number,
         seat_number=request.seat_number,
-        payment_details=request.payment_details
+        payment_details=request.payment_details,
     )
     
     return StartBookingResponse(
@@ -176,7 +177,7 @@ async def process_booking(
     passenger_name: str,
     flight_number: str,
     seat_number: str,
-    payment_details: dict
+    payment_details: PaymentDetails
 ):
     """
     Process a booking using the saga pattern.
@@ -190,130 +191,32 @@ async def process_booking(
     """
     settings = get_settings()
     booking = bookings_db[booking_id]
+    command_factory = OrchestratorCommandFactory(OrchestratorCommandArgs(
+        booking=booking,
+        passenger_name=passenger_name,
+        flight_number=flight_number,
+        seat_number=seat_number,
+        payment_details=payment_details,
+        settings=settings
+    ))
     
     try:
-        # Step 1: Block seat
-        async with httpx.AsyncClient() as client:
-            block_response = await client.post(
-                f"{settings.seat_service_url}/api/seats/block",
-                json={
-                    "booking_id": booking_id,
-                    "flight_number": flight_number,
-                    "seat_number": seat_number
-                }
-            )
-            
-            if block_response.status_code != 200:
-                error_data = block_response.json()
-                raise OrchestratorException(
-                    f"Failed to block seat: {error_data.get('message', 'Unknown error')}",
-                    booking_id=booking_id
-                )
-            
-            block_result = TransactionResult(**block_response.json())
-            booking.steps.append(
-                BookingStep(
-                    service="seat_service",
-                    operation="block_seat",
-                    status=block_result.status,
-                    timestamp=block_result.data.get("timestamp", "")
-                )
-            )
+        to_do = [command_factory.get_command(command) for command in settings.commands]
+        to_revert: List[OrchestratorCommand]  = []
+
+        while to_do:
+            command = to_do.pop(0)
+            try:
+                await command.execute()
+                to_revert.append(command)
+            except OrchestratorException:
+                to_do.insert(0, command)
+                while to_revert:
+                    revert_command = to_revert.pop()
+                    await revert_command.undo()
+                    to_do.insert(0, command)
+                raise
         
-        # Step 2: Process payment
-        async with httpx.AsyncClient() as client:
-            logger.info(f"Processing payment for booking {booking_id}")
-            
-            payment_response = await client.post(
-                f"{settings.payment_service_url}/api/payments/process",
-                json={
-                    "booking_id": booking_id,
-                    "amount": payment_details.amount,
-                    "currency": payment_details.currency,
-                    "payment_method_type": payment_details.payment_method_type,
-                    "payment_metadata": payment_details.payment_metadata
-                }
-            )
-            
-            if payment_response.status_code != 200:
-                logger.error("Payment service failed to process payment")
-                error_data = payment_response.json()
-                error_msg = error_data.get('message', 'Unknown error')
-                
-                booking.steps.append(
-                    BookingStep(
-                        service="payment_service",
-                        operation="process_payment",
-                        status="FAILED",
-                        timestamp="",
-                        message=error_msg,
-                    )
-                )
-                # Payment failed, compensate by releasing the seat
-                release_seat_response = await compensate_seat_blocking(booking_id, settings)
-                release_seat_result = TransactionResult(**release_seat_response.json())
-                logger.info(f"Release seat transaction result: {release_seat_result}")
-                booking.steps.append(
-                    BookingStep(
-                        service="seat_service",
-                        operation="release_seat",
-                        status=release_seat_result.status,
-                        timestamp=release_seat_result.data.get("timestamp", ""),
-                    )
-                )
-                
-                raise OrchestratorException(
-                    f"Failed to process payment: {error_msg}",
-                    booking_id=booking_id
-                )
-            
-            payment_result = TransactionResult(**payment_response.json())
-            booking.steps.append(
-                BookingStep(
-                    service="payment_service",
-                    operation="process_payment",
-                    status=payment_result.status,
-                    timestamp=payment_result.data.get("timestamp", "")
-                )
-            )
-            logger.info("Payment processed successfully")
-        
-        # Step 3: Allocate seat
-        async with httpx.AsyncClient() as client:
-            allocation_response = await client.post(
-                f"{settings.allocation_service_url}/api/allocations/allocate",
-                json={
-                    "booking_id": booking_id,
-                    "flight_number": flight_number,
-                    "seat_number": seat_number,
-                    "passenger_name": passenger_name
-                }
-            )
-            
-            if allocation_response.status_code != 200:
-                # Allocation failed, compensate by refunding payment and releasing seat
-                await compensate_payment_processing(booking_id, settings)
-                await compensate_seat_blocking(booking_id, settings)
-                
-                error_data = allocation_response.json()
-                raise OrchestratorException(
-                    f"Failed to allocate seat: {error_data.get('message', 'Unknown error')}",
-                    booking_id=booking_id
-                )
-            
-            allocation_result = TransactionResult(**allocation_response.json())
-            booking.steps.append(
-                BookingStep(
-                    service="allocation_service",
-                    operation="allocate_seat",
-                    status=allocation_result.status,
-                    timestamp=allocation_result.data.get("timestamp", "")
-                )
-            )
-            
-            # Store boarding pass
-            if allocation_result.data and "boarding_pass" in allocation_result.data:
-                booking.boarding_pass = allocation_result.data["boarding_pass"]
         
         # All steps completed successfully
         booking.status = BookingStatus.COMPLETED

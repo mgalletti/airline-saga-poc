@@ -35,9 +35,9 @@ gates = {
 
 # Sample boarding times (2 hours from now)
 boarding_times = {
-    "FL001": (datetime.utcnow() + timedelta(hours=2)).isoformat(),
-    "FL002": (datetime.utcnow() + timedelta(hours=3)).isoformat(),
-    "FL003": (datetime.utcnow() + timedelta(hours=4)).isoformat(),
+    "FL001": (datetime.now() + timedelta(hours=2)).isoformat(),
+    "FL002": (datetime.now() + timedelta(hours=3)).isoformat(),
+    "FL003": (datetime.now() + timedelta(hours=4)).isoformat(),
 }
 
 

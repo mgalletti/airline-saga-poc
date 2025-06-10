@@ -1,6 +1,8 @@
 """Configuration settings for the airline saga pattern implementation."""
 
 from pydantic_settings import BaseSettings
+from pydantic import field_validator
+from typing import List
 
 
 class ServiceSettings(BaseSettings):
@@ -52,3 +54,11 @@ class OrchestratorSettings(ServiceSettings):
     
     service_name: str = "orchestrator"
     port: int = 8000
+    commands: List[str] = ["SEAT", "PAYMENT", "ALLOCATION"]
+        
+    @field_validator("commands", mode="before")
+    @classmethod
+    def parse_commands(cls, v):
+        if isinstance(v, str):
+            return [item.strip() for item in v.split(",")]
+        return v
