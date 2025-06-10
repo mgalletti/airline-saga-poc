@@ -23,10 +23,8 @@ dependencies = [
 dev = [
     "pytest>=6.2.5",
     "pytest-asyncio>=0.15.1",
-    "black>=21.5b2",
-    "isort>=5.9.1",
+    "ruff>=0.1.0",
     "mypy>=0.812",
-    "flake8>=3.9.2",
 ]
 
 [tool.setuptools]
@@ -37,10 +35,17 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 pythonpath = [".", "src"]
 
-[tool.black]
+[tool.ruff]
+# Enable pycodestyle (E), Pyflakes (F), isort (I), and more
+select = ["E", "F", "I", "N", "B", "COM", "C4", "UP", "SIM", "ARG", "PTH"]
+ignore = []
 line-length = 88
-target-version = ["py38"]
+target-version = "py38"
 
-[tool.isort]
-profile = "black"
-line_length = 88
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.isort]
+known-first-party = ["airline_saga"]

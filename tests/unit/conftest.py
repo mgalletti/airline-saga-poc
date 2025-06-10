@@ -18,7 +18,7 @@ def mock_booking_details():
         passenger_name="John Doe",
         flight_number="FL123",
         seat_number="12A",
-        steps=[]
+        steps=[],
     )
 
 
@@ -29,7 +29,7 @@ def mock_payment_details():
         amount=100.0,
         currency="USD",
         payment_method_type=PaymentMethodType.CREDIT_CARD,
-        payment_metadata={"card_last4": "1234"}
+        payment_metadata={"card_last4": "1234"},
     )
 
 
@@ -52,5 +52,5 @@ def command_args(mock_booking_details, mock_payment_details, mock_settings):
         flight_number="FL123",
         seat_number="12A",
         payment_details=mock_payment_details,
-        settings=mock_settings
+        settings=mock_settings,
     )

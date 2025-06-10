@@ -208,6 +208,67 @@ FastAPI automatically generates interactive API documentation:
 
 These interfaces allow you to explore and test the API endpoints directly from your browser.
 
+## Linting and formatting
+
+This project uses [Ruff](https://docs.astral.sh/ruff/) as linter and formatter, 10-100x faster than other ones such Flake8 and Black.
+Ruff combines the functionality of multiple tools (flake8, black, isort, etc.) into a single, fast tool. The configuration in your pyproject.toml already sets up rules from various categories:
+
+- E: pycodestyle errors
+- F: Pyflakes
+- I: isort
+- N: naming conventions
+- B: flake8-bugbear
+- COM: flake8-commas
+- C4: flake8-comprehensions
+- UP: pyupgrade
+- SIM: flake8-simplify
+- ARG: flake8-unused-arguments
+- PTH: flake8-use-pathlib
+
+You can run Ruff as part of your CI/CD pipeline or as a pre-commit hook for consistent code quality across your project.
+
+
+### For linting:
+```bash
+# Run Ruff linter on your entire project
+ruff check .
+
+# Run Ruff linter on a specific directory
+ruff check src/
+
+# Run Ruff linter on a specific file
+ruff check src/airline_saga/orchestrator/main.py
+```
+
+### For formatting:
+```bash
+# Format your entire project
+ruff format .
+
+# Format a specific directory
+ruff format src/
+
+# Format a specific file
+ruff format src/airline_saga/orchestrator/main.py
+```
+
+### For checking and fixing issues automatically:
+```bash
+# Check and fix issues where possible
+ruff check --fix .
+```
+
+### Common options:
+```bash
+# Show detailed error information
+ruff check --verbose .
+
+# Show statistics about found issues
+ruff check --statistics .
+
+# Select specific rule categories
+ruff check --select E,F,I .
+```
 
 
 ## API Definitions

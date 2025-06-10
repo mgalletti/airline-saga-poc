@@ -9,7 +9,7 @@ from airline_saga.common.models import BookingStatus, BookingStep, PaymentMethod
 
 class PaymentDetails(BaseModel):
     """Details of a payment for a booking."""
-    
+
     amount: float
     currency: str
     payment_method_type: PaymentMethodType
@@ -18,7 +18,7 @@ class PaymentDetails(BaseModel):
 
 class StartBookingRequest(BaseModel):
     """Request to start a booking process."""
-    
+
     passenger_name: str
     flight_number: str
     seat_number: str
@@ -27,7 +27,7 @@ class StartBookingRequest(BaseModel):
 
 class StartBookingResponse(BaseModel):
     """Response for a booking start request."""
-    
+
     booking_id: str
     status: BookingStatus
     message: str
@@ -35,7 +35,7 @@ class StartBookingResponse(BaseModel):
 
 class BookingDetails(BaseModel):
     """Details of a booking."""
-    
+
     booking_id: str
     status: BookingStatus
     passenger_name: str
@@ -47,7 +47,7 @@ class BookingDetails(BaseModel):
 
 class CancellationResponse(BaseModel):
     """Response for a booking cancellation request."""
-    
+
     booking_id: str
     status: BookingStatus
     message: str

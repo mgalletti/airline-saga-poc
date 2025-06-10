@@ -7,7 +7,7 @@ from airline_saga.common.models import TransactionStatus
 from airline_saga.common.exceptions import (
     SagaException,
     AllocationFailedException,
-    BookingNotFoundException
+    BookingNotFoundException,
 )
 
 
@@ -19,12 +19,14 @@ async def saga_exception_handler(_: Request, exc: SagaException):
             "success": False,
             "booking_id": exc.booking_id,
             "status": TransactionStatus.FAILED,
-            "message": str(exc)
-        }
+            "message": str(exc),
+        },
     )
 
 
-async def allocation_failed_exception_handler(_: Request, exc: AllocationFailedException):
+async def allocation_failed_exception_handler(
+    _: Request, exc: AllocationFailedException
+):
     """Handler for allocation failed exceptions."""
     return JSONResponse(
         status_code=400,
@@ -32,12 +34,14 @@ async def allocation_failed_exception_handler(_: Request, exc: AllocationFailedE
             "success": False,
             "booking_id": exc.booking_id,
             "status": TransactionStatus.FAILED,
-            "message": str(exc)
-        }
+            "message": str(exc),
+        },
     )
 
 
-async def booking_not_found_exception_handler(_: Request, exc: BookingNotFoundException):
+async def booking_not_found_exception_handler(
+    _: Request, exc: BookingNotFoundException
+):
     """Handler for booking not found exceptions."""
     return JSONResponse(
         status_code=404,
@@ -45,13 +49,17 @@ async def booking_not_found_exception_handler(_: Request, exc: BookingNotFoundEx
             "success": False,
             "booking_id": exc.booking_id,
             "status": TransactionStatus.FAILED,
-            "message": str(exc)
-        }
+            "message": str(exc),
+        },
     )
 
 
 def register_exception_handlers(app: FastAPI) -> None:
     """Register all exception handlers for the allocation service."""
     app.add_exception_handler(SagaException, saga_exception_handler)
-    app.add_exception_handler(AllocationFailedException, allocation_failed_exception_handler)
-    app.add_exception_handler(BookingNotFoundException, booking_not_found_exception_handler)
+    app.add_exception_handler(
+        AllocationFailedException, allocation_failed_exception_handler
+    )
+    app.add_exception_handler(
+        BookingNotFoundException, booking_not_found_exception_handler
+    )

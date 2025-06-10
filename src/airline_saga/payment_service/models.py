@@ -9,7 +9,7 @@ from airline_saga.common.models import PaymentMethodType, PaymentStatus
 
 class ProcessPaymentRequest(BaseModel):
     """Request to process a payment."""
-    
+
     booking_id: str
     amount: float
     currency: str
@@ -19,13 +19,13 @@ class ProcessPaymentRequest(BaseModel):
 
 class RefundPaymentRequest(BaseModel):
     """Request to refund a payment."""
-    
+
     booking_id: str
 
 
 class Payment(BaseModel):
     """Model representing a payment."""
-    
+
     payment_id: str
     booking_id: str
     amount: float

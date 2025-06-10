@@ -20,7 +20,7 @@ def create_booking_step(
         service=service,
         operation=operation,
         status=status,
-        timestamp=datetime.utcnow().isoformat()
+        timestamp=datetime.utcnow().isoformat(),
     )
 
 
@@ -29,11 +29,10 @@ def format_error_response(message: str, booking_id: str = None) -> Dict[str, Any
     response = {
         "success": False,
         "message": message,
-        "status": TransactionStatus.FAILED
+        "status": TransactionStatus.FAILED,
     }
-    
+
     if booking_id:
         response["booking_id"] = booking_id
-        
-    return response
 
+    return response

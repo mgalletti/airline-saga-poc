@@ -11,7 +11,9 @@ from airline_saga.orchestrator.services.commands.command_factory import (
 from airline_saga.orchestrator.models import BookingDetails, PaymentDetails
 from airline_saga.orchestrator.services.commands.seat_command import SeatCommand
 from airline_saga.orchestrator.services.commands.payment_command import PaymentCommand
-from airline_saga.orchestrator.services.commands.allocation_command import AllocateCommand
+from airline_saga.orchestrator.services.commands.allocation_command import (
+    AllocateCommand,
+)
 from airline_saga.common.config import OrchestratorSettings
 
 
@@ -25,8 +27,9 @@ def command_args():
         flight_number="A123",
         seat_number="1A",
         payment_details=MagicMock(spec=PaymentDetails),
-        settings=OrchestratorSettings()
+        settings=OrchestratorSettings(),
     )
+
 
 class TestOrchestratorCommandFactory:
     """Tests for the OrchestratorCommandFactory class."""
@@ -59,9 +62,9 @@ class TestOrchestratorCommandFactory:
         """Test using a custom command registry."""
         mock_command = MagicMock()
         custom_registry = {OrchestratorCommandType.SEAT: mock_command}
-        
+
         factory = OrchestratorCommandFactory(command_args, custom_registry)
         command = factory.get_command("SEAT")
-        
+
         assert command == mock_command.return_value
         mock_command.assert_called_once_with(command_args)

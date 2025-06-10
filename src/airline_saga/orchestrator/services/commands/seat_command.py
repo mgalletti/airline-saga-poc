@@ -1,7 +1,10 @@
 import httpx
 from airline_saga.common.models import TransactionResult, BookingStep
 from airline_saga.common.exceptions import OrchestratorException
-from airline_saga.orchestrator.services.commands import OrchestratorCommand, OrchestratorCommandArgs
+from airline_saga.orchestrator.services.commands import (
+    OrchestratorCommand,
+    OrchestratorCommandArgs,
+)
 from airline_saga.orchestrator import logger
 
 
@@ -30,15 +33,14 @@ class SeatCommand(OrchestratorCommand):
         self.flight_number = command_args.flight_number
         self.seat_number = command_args.seat_number
         self.settings = command_args.settings
-    
-    
+
     async def execute(self):
         """
         Execute the seat blocking operation.
-        
+
         Makes an HTTP request to block the specified seat for the booking.
         Updates the booking steps with the result.
-        
+
         Raises:
             OrchestratorException: If the seat blocking operation fails
         """
@@ -50,14 +52,14 @@ class SeatCommand(OrchestratorCommand):
                 json={
                     "booking_id": self.booking.booking_id,
                     "flight_number": self.flight_number,
-                    "seat_number": self.seat_number
-                }
+                    "seat_number": self.seat_number,
+                },
             )
-            
+
             if block_response.status_code != 200:
                 error_data = block_response.json()
                 logger.error(f"Cannot block seat: {error_data}")
-                error_msg = error_data.get('message', 'Unknown error')
+                error_msg = error_data.get("message", "Unknown error")
                 self.booking.steps.append(
                     BookingStep(
                         service="seat_service",
@@ -69,9 +71,9 @@ class SeatCommand(OrchestratorCommand):
                 )
                 raise OrchestratorException(
                     f"Failed to block seat: {error_data.get('message', 'Unknown error')}",
-                    booking_id=self.booking.booking_id
+                    booking_id=self.booking.booking_id,
                 )
-            
+
             logger.info("Seat blocked successfully")
             block_result = TransactionResult(**block_response.json())
             self.booking.steps.append(
@@ -79,18 +81,17 @@ class SeatCommand(OrchestratorCommand):
                     service="seat_service",
                     operation="block_seat",
                     status=block_result.status,
-                    timestamp=block_result.data.get("timestamp", "")
+                    timestamp=block_result.data.get("timestamp", ""),
                 )
             )
-        
-    
+
     async def undo(self):
         """
         Compensating transaction to release a previously blocked seat.
-        
+
         Makes an HTTP request to release the seat associated with the booking.
         Updates the booking steps with the result.
-        
+
         Raises:
             Exception: If the seat release operation fails
         """
@@ -99,7 +100,7 @@ class SeatCommand(OrchestratorCommand):
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     f"{self.settings.seat_service_url}/api/seats/release",
-                    json={"booking_id": self.booking.booking_id}
+                    json={"booking_id": self.booking.booking_id},
                 )
                 release_seat_result = TransactionResult(**response.json())
                 logger.info(f"Release seat transaction result: {release_seat_result}")

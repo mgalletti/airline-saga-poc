@@ -8,7 +8,7 @@ from airline_saga.common.exceptions import (
     SagaException,
     PaymentFailedException,
     RefundFailedException,
-    BookingNotFoundException
+    BookingNotFoundException,
 )
 
 
@@ -20,8 +20,8 @@ async def saga_exception_handler(_: Request, exc: SagaException):
             "success": False,
             "booking_id": exc.booking_id,
             "status": TransactionStatus.FAILED,
-            "message": str(exc)
-        }
+            "message": str(exc),
+        },
     )
 
 
@@ -33,8 +33,8 @@ async def payment_failed_exception_handler(_: Request, exc: PaymentFailedExcepti
             "success": False,
             "booking_id": exc.booking_id,
             "status": TransactionStatus.FAILED,
-            "message": str(exc)
-        }
+            "message": str(exc),
+        },
     )
 
 
@@ -46,12 +46,14 @@ async def refund_failed_exception_handler(_: Request, exc: RefundFailedException
             "success": False,
             "booking_id": exc.booking_id,
             "status": TransactionStatus.FAILED,
-            "message": str(exc)
-        }
+            "message": str(exc),
+        },
     )
 
 
-async def booking_not_found_exception_handler(_: Request, exc: BookingNotFoundException):
+async def booking_not_found_exception_handler(
+    _: Request, exc: BookingNotFoundException
+):
     """Handler for booking not found exceptions."""
     return JSONResponse(
         status_code=404,
@@ -59,8 +61,8 @@ async def booking_not_found_exception_handler(_: Request, exc: BookingNotFoundEx
             "success": False,
             "booking_id": exc.booking_id,
             "status": TransactionStatus.FAILED,
-            "message": str(exc)
-        }
+            "message": str(exc),
+        },
     )
 
 
@@ -69,4 +71,6 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(SagaException, saga_exception_handler)
     app.add_exception_handler(PaymentFailedException, payment_failed_exception_handler)
     app.add_exception_handler(RefundFailedException, refund_failed_exception_handler)
-    app.add_exception_handler(BookingNotFoundException, booking_not_found_exception_handler)
+    app.add_exception_handler(
+        BookingNotFoundException, booking_not_found_exception_handler
+    )

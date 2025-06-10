@@ -1,6 +1,6 @@
 """Models specific to the allocation service."""
 
-from typing import Dict, Any, Optional
+from typing import Optional
 import enum
 
 from pydantic import BaseModel
@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 class AllocationStatus(str, enum.Enum):
     """Status of a seat allocation."""
-    
+
     PENDING = "PENDING"
     ALLOCATED = "ALLOCATED"
     CANCELLED = "CANCELLED"
@@ -17,7 +17,7 @@ class AllocationStatus(str, enum.Enum):
 
 class AllocateSeatRequest(BaseModel):
     """Request to allocate a seat."""
-    
+
     booking_id: str
     flight_number: str
     seat_number: str
@@ -26,13 +26,13 @@ class AllocateSeatRequest(BaseModel):
 
 class CancelAllocationRequest(BaseModel):
     """Request to cancel a seat allocation."""
-    
+
     booking_id: str
 
 
 class BoardingPass(BaseModel):
     """Model representing a boarding pass."""
-    
+
     passenger: str
     flight: str
     seat: str
@@ -42,7 +42,7 @@ class BoardingPass(BaseModel):
 
 class Allocation(BaseModel):
     """Model representing a seat allocation."""
-    
+
     allocation_id: str
     booking_id: str
     flight_number: str

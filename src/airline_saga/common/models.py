@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 class TransactionStatus(str, enum.Enum):
     """Status of a transaction in the saga pattern."""
-    
+
     PENDING = "PENDING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
@@ -20,7 +20,7 @@ class TransactionStatus(str, enum.Enum):
 
 class TransactionResult(BaseModel):
     """Result of a transaction in the saga pattern."""
-    
+
     success: bool
     booking_id: str
     status: TransactionStatus
@@ -30,7 +30,7 @@ class TransactionResult(BaseModel):
 
 class SeatStatus(str, enum.Enum):
     """Status of a seat in the airline booking system."""
-    
+
     AVAILABLE = "available"
     BLOCKED = "blocked"
     BOOKED = "booked"
@@ -38,7 +38,7 @@ class SeatStatus(str, enum.Enum):
 
 class PaymentMethodType(str, enum.Enum):
     """Types of payment methods."""
-    
+
     CREDIT_CARD = "credit_card"
     PAYPAL = "paypal"
     BANK_TRANSFER = "bank_transfer"
@@ -47,7 +47,7 @@ class PaymentMethodType(str, enum.Enum):
 
 class PaymentStatus(str, enum.Enum):
     """Status of a payment transaction."""
-    
+
     PENDING = "PENDING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
@@ -56,7 +56,7 @@ class PaymentStatus(str, enum.Enum):
 
 class BookingStatus(str, enum.Enum):
     """Status of a booking in the system."""
-    
+
     PENDING = "PENDING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
@@ -65,7 +65,7 @@ class BookingStatus(str, enum.Enum):
 
 class BookingStep(BaseModel):
     """A step in the booking process."""
-    
+
     service: str
     operation: str
     status: TransactionStatus
@@ -75,7 +75,7 @@ class BookingStep(BaseModel):
 
 class BookingRequest(BaseModel):
     """Request model for starting a booking process."""
-    
+
     passenger_name: str
     flight_number: str
     seat_number: str
@@ -85,7 +85,7 @@ class BookingRequest(BaseModel):
 
 class BookingResponse(BaseModel):
     """Response model for a booking request."""
-    
+
     booking_id: str
     status: BookingStatus
     message: str
@@ -93,7 +93,7 @@ class BookingResponse(BaseModel):
 
 class BookingStatusResponse(BaseModel):
     """Response model for a booking status request."""
-    
+
     booking_id: str
     status: BookingStatus
     passenger_name: str
@@ -105,7 +105,7 @@ class BookingStatusResponse(BaseModel):
 
 class BookingCancellationResponse(BaseModel):
     """Response model for a booking cancellation request."""
-    
+
     booking_id: str
     status: BookingStatus
     message: str

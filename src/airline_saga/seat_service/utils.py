@@ -1,6 +1,7 @@
 from typing import Dict
 from airline_saga.seat_service.models import Flight, SeatStatus, Seat
 
+
 def init_flights_db() -> Dict[str, Flight]:
     flights_db = {}
     """Initialize the service with some sample data."""
@@ -14,9 +15,9 @@ def init_flights_db() -> Dict[str, Flight]:
             Seat(seat_number="2A"),
             Seat(seat_number="2B"),
             Seat(seat_number="2C"),
-        ]
+        ],
     )
-    
+
     flights_db["FL002"] = Flight(
         flight_number="FL002",
         seats=[
@@ -26,9 +27,9 @@ def init_flights_db() -> Dict[str, Flight]:
             Seat(seat_number="2A"),
             Seat(seat_number="2B"),
             Seat(seat_number="2C"),
-        ]
+        ],
     )
-    
+
     # Set some seats as blocked or booked for demonstration
     flight = flights_db["FL001"]
     flight.seats[1].status = SeatStatus.BLOCKED
