@@ -6,11 +6,26 @@ from airline_saga.orchestrator import logger
 
 
 class PaymentCommand(OrchestratorCommand):
+    """
+    Command class for handling payment processing and refunds in the airline booking system.
+    Inherits from OrchestratorCommand base class.
+    """
     
     def __init__(
         self,
         command_args: OrchestratorCommandArgs,
     ):
+        """
+        Initialize PaymentCommand with booking and payment details.
+
+        Args:
+            command_args (OrchestratorCommandArgs): Command arguments containing:
+                - booking: Booking object with booking details
+                - flight_number: Flight number for the booking
+                - seat_number: Selected seat number
+                - payment_details: Payment information including amount, currency etc.
+                - settings: Service configuration settings
+        """
         super().__init__()
         self.booking = command_args.booking
         self.flight_number = command_args.flight_number
@@ -20,6 +35,15 @@ class PaymentCommand(OrchestratorCommand):
         
     
     async def execute(self):
+        """
+        Execute payment processing for a booking.
+        
+        Makes HTTP request to payment service to process payment with provided details.
+        Updates booking steps with payment status.
+        
+        Raises:
+            OrchestratorException: If payment processing fails
+        """
         booking_id = self.booking.booking_id
         async with httpx.AsyncClient() as client:
             logger.info(f"Processing payment for booking {booking_id}")
@@ -68,11 +92,13 @@ class PaymentCommand(OrchestratorCommand):
     
     async def undo(self):
         """
-        Compensating transaction for payment processing.
+        Compensating transaction to refund a processed payment.
         
-        Args:
-            booking_id: The booking ID
-            settings: The service settings
+        Makes HTTP request to payment service to refund payment for a booking.
+        Updates booking steps with refund status.
+        
+        Raises:
+            Exception: If refund processing fails
         """
         booking_id = self.booking.booking_id
         try:

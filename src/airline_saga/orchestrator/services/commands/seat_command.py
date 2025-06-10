@@ -10,17 +10,20 @@ class SeatCommand(OrchestratorCommand):
     Command class for handling seat booking operations in the airline booking system.
     Handles blocking and releasing seats as part of the booking saga pattern.
     """
-    
+
     def __init__(
         self,
         command_args: OrchestratorCommandArgs,
     ):
         """
-        Initialize the SeatCommand with booking details.
-        
+        Initialize the SeatCommand.
+
         Args:
-            command_args (OrchestratorCommandArgs): Command arguments containing booking info,
-                flight number, seat number and settings
+            command_args (OrchestratorCommandArgs): Command arguments containing:
+                - booking: The booking object
+                - flight_number: Flight number for the allocation
+                - seat_number: Seat number to allocate
+                - settings: Application settings
         """
         super().__init__()
         self.booking = command_args.booking
@@ -28,15 +31,16 @@ class SeatCommand(OrchestratorCommand):
         self.seat_number = command_args.seat_number
         self.settings = command_args.settings
     
+    
     async def execute(self):
         """
         Execute the seat blocking operation.
         
-        Makes HTTP request to seat service to block a specific seat.
-        Records the operation result in booking steps.
+        Makes an HTTP request to block the specified seat for the booking.
+        Updates the booking steps with the result.
         
         Raises:
-            OrchestratorException: If seat blocking fails
+            OrchestratorException: If the seat blocking operation fails
         """
         # Step 1: Block seat
         async with httpx.AsyncClient() as client:
@@ -84,11 +88,11 @@ class SeatCommand(OrchestratorCommand):
         """
         Compensating transaction to release a previously blocked seat.
         
-        Makes HTTP request to seat service to release the seat.
-        Records the operation result in booking steps.
+        Makes an HTTP request to release the seat associated with the booking.
+        Updates the booking steps with the result.
         
         Raises:
-            Exception: If seat release fails
+            Exception: If the seat release operation fails
         """
         logger.info(f"Releasing the seat for booking: {self.booking.booking_id}")
         try:
@@ -110,4 +114,3 @@ class SeatCommand(OrchestratorCommand):
         except Exception as e:
             logger.error(f"Error while releasing the seat: {str(e)}")
             raise
-

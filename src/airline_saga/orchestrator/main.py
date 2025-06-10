@@ -204,6 +204,9 @@ async def process_booking(
         to_do = [command_factory.get_command(command) for command in settings.commands]
         to_revert: List[OrchestratorCommand]  = []
 
+        # Dequeues commands to be executed sequentially and revert the executions if something fails.
+        # Workflow is pretty dumb as it doesn't support conditional branching, parallelization, loops, etc.
+        # After all, is a POC..
         while to_do:
             command = to_do.pop(0)
             try:

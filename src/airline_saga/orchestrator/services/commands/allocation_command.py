@@ -6,23 +6,23 @@ from airline_saga.orchestrator import logger
 
 
 class AllocateCommand(OrchestratorCommand):
-    """
-    Command class for handling seat allocation operations in the airline booking system.
-    Implements allocation of seats and rollback functionality.
+    """Command to allocate a seat for a booking.
+    
+    This command handles seat allocation by making requests to the allocation service.
+    It can allocate a seat for a booking and undo the allocation if needed.
     """
     
     def __init__(
         self,
         command_args: OrchestratorCommandArgs,
     ):
-        """
-        Initialize the AllocateCommand with booking details.
+        """Initialize the AllocateCommand.
         
         Args:
-            command_args (OrchestratorCommandArgs): Contains booking details including:
-                - booking: Booking object with booking information
-                - flight_number: Flight identifier
-                - seat_number: Selected seat number
+            command_args (OrchestratorCommandArgs): Command arguments containing:
+                - booking: The booking object
+                - flight_number: Flight number for the allocation
+                - seat_number: Seat number to allocate
                 - passenger_name: Name of the passenger
                 - settings: Application settings
         """
@@ -35,10 +35,9 @@ class AllocateCommand(OrchestratorCommand):
         
     
     async def execute(self):
-        """
-        Execute the seat allocation process.
+        """Execute the seat allocation.
         
-        Makes an API call to the allocation service to reserve a seat.
+        Makes a POST request to the allocation service to allocate a seat.
         Updates the booking with allocation details and boarding pass.
         
         Raises:
@@ -80,14 +79,13 @@ class AllocateCommand(OrchestratorCommand):
         
     
     async def undo(self):
-        """
-        Rollback the seat allocation.
+        """Undo the seat allocation.
         
-        Attempts to cancel a previously made seat allocation by calling
-        the allocation service's cancel endpoint.
+        Makes a POST request to cancel the seat allocation.
+        Updates the booking with cancellation details.
         
         Raises:
-            Exception: If the cancellation process fails
+            Exception: If there is an error during cancellation
         """
         try:
             async with httpx.AsyncClient() as client:
